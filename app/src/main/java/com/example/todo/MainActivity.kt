@@ -4,20 +4,16 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.room.Room
+import com.example.todo.data.datastore.SettingsDataStore
 import com.example.todo.data.db.AppDatabase
 import com.example.todo.data.repository.TaskRepositoryImpl
 import com.example.todo.domain.usecase.AddTaskUseCase
 import com.example.todo.domain.usecase.DeleteTaskUseCase
 import com.example.todo.domain.usecase.GetTasksUseCase
+import com.example.todo.domain.usecase.ImportTasksUseCase
 import com.example.todo.domain.usecase.ToggleTasksUseCase
+import com.example.todo.domain.usecase.UpdateTaskUseCase
 import com.example.todo.presentation.todo.TodoScreen
 import com.example.todo.presentation.todo.TodoViewModel
 import com.example.todo.ui.theme.TODOTheme
@@ -36,16 +32,19 @@ class MainActivity : ComponentActivity() {
         val taskDao = db.taskDao()
         val repository = TaskRepositoryImpl(taskDao)
 
-        val getTasksUseCase = GetTasksUseCase(repository)
-        val addTaskUseCase = AddTaskUseCase(repository)
-        val toggleTaskUseCase = ToggleTasksUseCase(repository)
-        val deleteTaskUseCase = DeleteTaskUseCase(repository)
+        val settingsDataStore = SettingsDataStore(applicationContext)
+
+        val tasksJson = assets.open("tasks.json").bufferedReader().use { it.readText() }
 
         val viewModel = TodoViewModel(
-            getTasksUseCase,
-            addTaskUseCase,
-            toggleTaskUseCase,
-            deleteTaskUseCase
+            getTasksUseCase = GetTasksUseCase(repository),
+            addTaskUseCase = AddTaskUseCase(repository),
+            toggleTasksUseCase = ToggleTasksUseCase(repository),
+            deleteTaskUseCase = DeleteTaskUseCase(repository),
+            updateTaskUseCase = UpdateTaskUseCase(repository),
+            importTasksUseCase = ImportTasksUseCase(repository, settingsDataStore),
+            settingsDataStore = settingsDataStore,
+            tasksJson = tasksJson
         )
 
         setContent {

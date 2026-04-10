@@ -2,8 +2,12 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
-    id("org.jetbrains.kotlin.kapt")
+    alias(libs.plugins.ksp)
 }
+
+// IDE (IntelliJ/Android Studio) requests this task for .kts script editor support.
+// It was removed in KGP 2.0. maybeCreate is safe: no-op if already registered by KSP.
+tasks.maybeCreate("prepareKotlinBuildScriptModel")
 
 android {
     namespace = "com.example.todo"
@@ -55,7 +59,9 @@ dependencies {
     implementation("androidx.room:room-runtime:$room_version")
     implementation("androidx.room:room-ktx:$room_version")
 
-    kapt("androidx.room:room-compiler:$room_version")
+    ksp("androidx.room:room-compiler:$room_version")
+
+    implementation(libs.androidx.datastore.preferences)
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
